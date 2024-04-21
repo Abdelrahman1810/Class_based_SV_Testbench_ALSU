@@ -1,0 +1,67 @@
+1.  Line 65
+    case that check opcode must check opcode_reg Not opcode
+    Error:
+    case (opcode) ...
+    endcase
+    Fix:
+    case (opcode_reg) ...
+    endcase
+
+2.  Line 23
+    the opcode_reg[3] is out of range
+    Error:
+    assign invalid_opcode = opcode_reg[2] & opcode_reg[3];
+    Fix:
+    assign invalid_opcode = opcode_reg[2] & opcode_reg[1];
+
+3.  Line 68
+    when opcode_reg == 0'h0 it means the operation is OR not AND
+    Error:
+    3'h0: begin
+        if (red_op_A_reg && red_op_B_reg)
+            out = (INPUT_PRIORITY == "A")? &A_reg: &B_reg;
+        else if (red_op_A_reg) 
+            out <= &A_reg;
+        else if (red_op_B_reg)
+            out <= &B_reg;
+        else 
+            out <= A_reg & B_reg;
+    end
+
+    Fix:
+    3'h0: begin
+        if (red_op_A_reg && red_op_B_reg)
+            out = (INPUT_PRIORITY == "A")? &A_reg: &B_reg;
+        else if (red_op_A_reg) 
+            out <= &A_reg;
+        else if (red_op_B_reg)
+            out <= &B_reg;
+        else 
+            out <= A_reg & B_reg;
+    end
+
+4.  Line 88
+    when opcode_reg == 0'h1 it means the operation is XOR not OR
+    Error:
+    3'h1: begin
+        if (red_op_A_reg && red_op_B_reg)
+            out <= (INPUT_PRIORITY == "A")? |A_reg: |B_reg;
+        else if (red_op_A_reg) 
+            out <= |A_reg;
+        else if (red_op_B_reg)
+            out <= |B_reg;
+        else 
+            out <= A_reg | B_reg;
+    end
+
+    Fix:
+    3'h1: begin
+        if (red_op_A_reg && red_op_B_reg)
+            out <= (INPUT_PRIORITY == "A")? ^A_reg: ^B_reg;
+        else if (red_op_A_reg) 
+            out <= ^A_reg;
+        else if (red_op_B_reg)
+            out <= ^B_reg;
+        else 
+            out <= A_reg ^ B_reg;
+    end
