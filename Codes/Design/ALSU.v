@@ -34,16 +34,17 @@ always @(posedge clk or posedge rst) begin
     bypass_A_reg <= 0;
     direction_reg <= 0;
     serial_in_reg <= 0;
-    opcode_reg <= 0;
     A_reg <= 0;
     B_reg <= 0;
         
   end
   else begin
-    if (invalid)
+    // if (invalid) // Wrong
+    if (invalid && !bypass_A_reg && !bypass_B_reg) // Fix
       leds <= ~leds;
     else
       leds <= 0;
+
     cin_reg <= cin;
     red_op_B_reg <= red_op_B;
     red_op_A_reg <= red_op_A;
@@ -54,56 +55,46 @@ always @(posedge clk or posedge rst) begin
     opcode_reg <= opcode;
     A_reg <= A;
     B_reg <= B;
-    if (invalid) 
-        out <= 0;
-    else if (bypass_A_reg && bypass_B_reg)
+
+    // if (invalid) // Wrong
+    if (bypass_A_reg && bypass_B_reg)
       out <= (INPUT_PRIORITY == "A")? A_reg: B_reg;
     else if (bypass_A_reg)
       out <= A_reg;
     else if (bypass_B_reg)
       out <= B_reg;
+    else if (invalid) 
+        out <= 0;
     else begin
         //case (opcode) // wrong
         case (opcode_reg) // FIX
-          //3'h0: begin // Wrong
-          //  if (red_op_A_reg && red_op_B_reg)
-          //    out = (INPUT_PRIORITY == "A")? &A_reg: &B_reg;
-          //  else if (red_op_A_reg) 
-          //    out <= &A_reg;
-          //  else if (red_op_B_reg)
-          //    out <= &B_reg;
-          //  else 
-          //    out <= A_reg & B_reg;
-          //end 
           3'h0: begin // Fix
             if (red_op_A_reg && red_op_B_reg)
-              out = (INPUT_PRIORITY == "A")? |A_reg: |B_reg;
+              out = (INPUT_PRIORITY == "A")? |A_reg: |B_reg; // FIX
+           // out = (INPUT_PRIORITY == "A")? &A_reg: &B_reg; // Wrong
             else if (red_op_A_reg) 
-              out <= |A_reg;
+              out <= |A_reg; // FIX
+           // out <= &A_reg; // Wrong
             else if (red_op_B_reg)
-              out <= |B_reg;
+              out <= |B_reg; // FIX
+           // out <= &B_reg; // Wrong
             else 
-              out <= A_reg | B_reg;
+              out <= A_reg | B_reg; // FIX
+           // out <= A_reg & B_reg; // Wrong
           end
-          //3'h1: begin // Wrong
-          //  if (red_op_A_reg && red_op_B_reg)
-          //    out <= (INPUT_PRIORITY == "A")? |A_reg: |B_reg;
-          //  else if (red_op_A_reg) 
-          //    out <= |A_reg;
-          //  else if (red_op_B_reg)
-          //    out <= |B_reg;
-          //  else 
-          //    out <= A_reg | B_reg;
-          //end
           3'h1: begin // Fix
             if (red_op_A_reg && red_op_B_reg)
               out <= (INPUT_PRIORITY == "A")? ^A_reg: ^B_reg;
+           // out <= (INPUT_PRIORITY == "A")? |A_reg: |B_reg;
             else if (red_op_A_reg) 
               out <= ^A_reg;
+           // out <= |A_reg;
             else if (red_op_B_reg)
               out <= ^B_reg;
+           // out <= |B_reg;
             else 
               out <= A_reg ^ B_reg;
+           // out <= A_reg | B_reg;
           end
           3'h2: begin
             if (FULL_ADDER == "ON")
